@@ -36,8 +36,8 @@ limitations under the License.
   <div class="panel-body">
     <form class="form">
       <div class="form-group">
-        <label for="callsetId">Enter your callset ID</label>
-        <input type="text" class="form-control" id="callsetId" value="376902546192-0"/> <!-- HG00096 in 1000 genomes -->
+        <label for="callSetId">Enter your call set ID</label>
+        <input type="text" class="form-control" id="callSetId" value="376902546192-0"/> <!-- HG00096 in 1000 genomes -->
       </div>
       <div class="form-group">
         <label for="traitSelector">Choose a trait</label>
@@ -53,15 +53,15 @@ limitations under the License.
           <th>Contig</th>
           <th>Position</th>
           <th>Allele</th>
-          <th>Callset genotype</th>
-          <th>Callset score</th>
+          <th>Call set genotype</th>
+          <th>Call set score</th>
         </tr>
         </thead>
         <tbody id="alleleScores"></tbody>
         <tfoot>
         <tr>
           <td colspan="5"></td>
-          <td id="totalScore" class="callsetClear" style="font-weight: bold;"></td>
+          <td id="totalScore" class="callSetClear" style="font-weight: bold;"></td>
         </tr>
         </tfoot>
       </table>
@@ -107,8 +107,8 @@ function createAlleleRows(panel) {
     $("<td/>").text(allele.contig).appendTo(row);
     $("<td/>").text(allele.position).appendTo(row);
     $("<td/>").text(allele.allele).appendTo(row);
-    $("<td/>", {id: "callsetAllele" + i, 'class': 'callsetClear'}).appendTo(row);
-    $("<td/>", {id: "callsetScore" + i, 'class': 'callsetClear'}).appendTo(row);
+    $("<td/>", {id: "callSetAllele" + i, 'class': 'callSetClear'}).appendTo(row);
+    $("<td/>", {id: "callSetScore" + i, 'class': 'callSetClear'}).appendTo(row);
     rows.push(row);
   }
 
@@ -120,56 +120,48 @@ function createAlleleRows(panel) {
 
 function calculateScore() {
   $("#scoreButton").button('loading');
-  $(".callsetClear").empty();
+  $(".callSetClear").empty();
   $("#alleleScores tr").removeClass();
 
   $.authGenomics(scorePanel);
 }
 
 function scorePanel() {
-  var callsetInput = $("#callsetId");
-  var callsetId = callsetInput.val();
+  var callSetInput = $("#callSetId");
+  var callSetId = callSetInput.val();
 
-  // First lookup the callset to get the datasetId
-  $.genomicsAjax('/callsets/' + callsetId, {
-    success: function(json) {
-      var datasetId = json.datasetId;
-
-      var totals = {finished: 0, score: 0, count: currentPanel.alleles.length};
-      for (var i = 0; i < currentPanel.alleles.length; i++) {
-        var allele = currentPanel.alleles[i];
-        scoreAllele(datasetId, callsetId, allele, i, totals);
-      }
-    }
-  });
+  var totals = {finished: 0, score: 0, count: currentPanel.alleles.length};
+  for (var i = 0; i < currentPanel.alleles.length; i++) {
+    var allele = currentPanel.alleles[i];
+    scoreAllele(callSetId, allele, i, totals);
+  }
 }
 
-function scoreAllele(datasetId, callsetId, allele, number, totals) {
+function scoreAllele(callSetId, allele, number, totals) {
   var params = {
-    datasetId: datasetId,
-    contig: allele.contig,
-    startPosition: allele.position,
-    endPosition: allele.position,
-    callsetIds: [callsetId]
+    referenceName: allele.contig,
+    start: allele.position,
+    end: allele.position + 1,
+    callSetIds: [callSetId]
   };
 
   // Search over the variants at each contig position to see what
-  // genotype the callset has.
+  // genotype the call set has.
   $.genomicsAjax('/variants/search', {
     method: 'POST',
     data: JSON.stringify(params),
     success: function(json) {
-      var callsetGenotype = getGenotype(json.variants || [],
-          allele.position, callsetId);
+      var callSetGenotype = getGenotype(json.variants || [],
+          allele.position, callSetId);
 
-      var matchesAllele = callsetGenotype.indexOf(allele.allele) != -1;
-      var callsetScore = matchesAllele ? allele.score : 0;
+      var matchesAllele = callSetGenotype.indexOf(allele.allele) != -1;
+      var callSetScore = matchesAllele ? allele.score : 0;
 
-      $("#callsetAllele" + number).text(callsetGenotype.join(";"));
-      $("#callsetScore" + number).text(callsetScore).parent()
+      $("#callSetAllele" + number).text(callSetGenotype.join(";"));
+      $("#callSetScore" + number).text(callSetScore).parent()
           .addClass(matchesAllele ? "success" : "");
 
-      totals.score += callsetScore;
+      totals.score += callSetScore;
       totals.finished++;
 
 
@@ -194,26 +186,24 @@ function scoreAllele(datasetId, callsetId, allele, number, totals) {
   });
 }
 
-function getGenotype(variants, position, callsetId) {
+function getGenotype(variants, position, callSetId) {
   // Excessively complicated logic to figure out the actual genotype for
-  // a callset at a given spot
+  // a call set at a given spot
   for (var i = 0; i < variants.length; i++) {
     var variant = variants[i];
-    if (variant.position != position) {
+    if (variant.start != position) {
       continue;
     }
 
     for (var c = 0; c < variant.calls.length; c++) {
       var call = variant.calls[c];
-      if (call.callsetId != callsetId) {
+      if (call.callSetId != callSetId) {
         continue;
       }
 
-      // TODO: Switch to genotype field when its ready
       var genotype = [];
-      var splits = call.info["GT"][0].split(/[|\/]/);
-      for (var g = 0; g < splits.length; g++) {
-        var allele = splits[g];
+      for (var g = 0; g < call.genotype.length; g++) {
+        var allele = call.genotype[g];
         if (allele == 0) {
           genotype.push(variant.referenceBases);
         } else {
