@@ -83,7 +83,7 @@ limitations under the License.
   //
   // Example usage:
   //  $.initGenomics({clientId: clientId});
-  //  $.genomicsAjax('/datasets/376902546192', {
+  //  $.genomicsAjax('/datasets/10473108253681171589', {
   //      success: function(dataset) { alert("Dataset: " + dataset.name); }
   //  });
   //
