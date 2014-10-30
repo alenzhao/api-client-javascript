@@ -88,9 +88,10 @@ limitations under the License.
   //  });
   //
   $.genomicsAjax = function(path, options) {
+    var version = options.version || 'v1beta';
     $.authGenomics(function() {
       $.ajax($.extend({
-        url: 'https://www.googleapis.com/genomics/v1beta' + path,
+        url: 'https://www.googleapis.com/genomics/' + version + path,
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         beforeSend: function (request) {
