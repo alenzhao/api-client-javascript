@@ -74,7 +74,13 @@ limitations under the License.
 
 <script type="text/javascript">
 // Setup the genomics plugin
-$.initGenomics({clientId: 'your-client-id-goes-here'});
+var clientId = window.location.hash.substring(1);
+if (!clientId) {
+  alert('A client ID is required. Please append one to the url: ' +
+      'http://localhost:8000/traitviewer#my-client-id');
+} else {
+  $.initGenomics({clientId: clientId});
+}
 
 // Load the trait data into the UI
 var currentPanel = null;
@@ -140,6 +146,7 @@ function scorePanel() {
 function scoreAllele(callSetId, allele, number, totals) {
   var params = {
     referenceName: allele.contig,
+    // Note: the variants API uses 0-based coordinates
     start: allele.position,
     end: allele.position + 1,
     callSetIds: [callSetId]
@@ -148,6 +155,7 @@ function scoreAllele(callSetId, allele, number, totals) {
   // Search over the variants at each contig position to see what
   // genotype the call set has.
   $.genomicsAjax('/variants/search', {
+    version: 'v1beta2',
     method: 'POST',
     data: JSON.stringify(params),
     success: function(json) {

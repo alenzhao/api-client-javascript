@@ -29,18 +29,11 @@ To get data from the API, you will also need to use a real Client ID.
 
 * Click the **Create Client ID** button
 
-* From the newly created **Client ID for web application**, copy the `Client ID`
-  value into the `clientId` variable inside `traitviewer/index.html`.
-  The clientId line that used to look like this:
+* From the newly created **Client ID for web application**, find the `Client ID`
+  value.
 
-  `$.initGenomics({clientId: 'your-client-id-goes-here'});`
-
-  should now be more like this:
-
-  `$.initGenomics({clientId: '12345.apps.googleusercontent.com'});`
-
-* Save the traitviewer/index.html file, reload the `http://localhost:8000/traitviewer` page, and
-  all of the API calls should work.
+* Using that Client ID value, load the code at:
+  `http://localhost:8000/traitviewer#your-client-id-goes-here`
 
 
 Note: If you want to run the code on any other domain, make sure you update the
