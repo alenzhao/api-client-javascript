@@ -53,7 +53,7 @@ javascript origins on your Client ID to include that new domain.
 * googlegenomics.jquery.js:
 
   this is a work-in-progress jQuery plugin that makes fetching data from the
-  [Genomics API](http://developers.google.com/genomics) a bit easier. It wraps
+  [Genomics API](http://cloud.google.com/genomics) a bit easier. It wraps
   [Google's javascript client library](https://developers.google.com/api-client-library/javascript/).
 
 
